@@ -177,6 +177,10 @@ WriteBin:
     jmp .setfourend
 
     .end:
+    mov eax, 13
+    call mio_writechar
+    mov eax, 10
+    call mio_writechar
     pop edx
     pop ecx
     pop ebx
@@ -184,12 +188,181 @@ WriteBin:
 
 ret
 
+ReadHex:
+
+    XOR eax, eax
+    push ebx
+    push ecx
+    push edx
+    XOR ebx, ebx
+    XOR ecx, ecx
+    XOR edx, edx
+
+    .h_read_number:
+    XOR eax, eax
+    call mio_readchar
+    cmp eax, 13
+    je .h_endh
+    cmp eax, '0'
+    jl .h_error_nan
+    cmp eax, '9'
+    jg .h_correct_letter
+    cmp eax, '9'
+    jle .h_number
+
+    .h_letter:
+    cmp eax, 'F'
+    jle .h_c_letter
+    cmp eax, 'f'
+    jle .h_nc_letter
+
+    .h_number:
+    call mio_writechar
+    sub eax, '0'
+    jmp .h_store
+
+    .h_c_letter:
+    sub eax, 55
+    jmp .h_store
+
+    .h_nc_letter:
+    sub eax, 87
+    jmp .h_store
+
+    .h_store:
+    push eax
+    add ecx, 1
+    jmp .h_read_number
+
+    .h_correct_letter_wr:
+    call mio_writechar
+    jmp .h_letter
+
+    .h_correct_letter:
+    cmp eax, 'A'
+    jl .h_error_nan
+    cmp eax, 'F'
+    jle .h_correct_letter_wr
+    cmp eax, 'a'
+    jl .h_error_nan
+    cmp eax, 'f'
+    jle .h_correct_letter_wr
+    jmp .h_error_nan
+
+    .h_endh:
+    cmp ecx, 0
+    je .h_end
+    XOR eax, eax
+    mov ebx, 1
+
+    .h_process:
+    pop edx
+    sub ecx, 1
+    imul edx, ebx
+    add eax, edx
+    imul ebx, 16
+    cmp ecx, 0
+    jne .h_process
+    push eax
+    jmp .h_end
+    
+    .h_error_nan:
+    jmp .read_error
+    
+    .h_end:
+    mov eax, 13
+    call mio_writechar
+    mov eax, 10
+    call mio_writechar
+    XOR eax, eax
+    pop eax
+    pop edx
+    pop ecx
+    pop ebx
+    jmp .noerror
+
+    .read_error:
+    mov     al, 13
+    call    mio_writechar
+    mov     al, 10
+    call    mio_writechar
+    mov eax, str_error_nan
+    call mio_writestr
+    mov     al, 13
+    call    mio_writechar
+    mov     al, 10
+    call    mio_writechar
+
+    .noerror:
+
+    ret
+
+WriteHex:
+
+    push ebx
+    push ecx
+    push edx
+    push eax
+
+    mov eax, '0'
+    call mio_writechar
+    mov eax, 'x'
+    call mio_writechar
+    XOR eax, eax
+    pop eax
+    push eax
+    mov ecx, 8
+    .loop1:
+    mov ebx, 15
+    and ebx, eax
+    push ebx
+    shr eax, 4
+    loop .loop1
+    mov ecx, 8
+    .loop2:
+    pop eax
+    cmp eax, 9
+    jg .letter
+    add eax, 48
+    jmp .letter_end
+    .letter:
+	add eax, 55
+    .letter_end:
+	call mio_writechar
+    loop .loop2
+
+    pop eax
+    pop edx
+    pop ecx
+    pop ebx
+    push eax
+    mov     al, 13 ;Uj sor
+    call    mio_writechar
+    mov     al, 10
+    call    mio_writechar
+    pop eax
+
+    ret
+
 
 main:
 
     call ReadInt
     call WriteInt
     call WriteBin
+    call WriteHex
+    mov     al, 13
+    call    mio_writechar
+    mov     al, 10
+    call    mio_writechar
+    mov     al, 13
+    call    mio_writechar
+    mov     al, 10
+    call    mio_writechar
+    call ReadHex
+    call WriteInt
+    call WriteBin
+    call WriteHex
 
     ret
 
