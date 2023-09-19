@@ -11,7 +11,6 @@ section .text
 
 ReadInt:
 
-
     push ebx
     push ecx
     push edx ;store the previous values of the registers
@@ -35,6 +34,8 @@ ReadInt:
     .positive:
     cmp eax, 13
     je .end
+    cmp eax, 8
+    je .backspace
     cmp eax, '0'
     jl  .error_set
     cmp eax, '9'
@@ -50,6 +51,23 @@ ReadInt:
     add eax, ecx
     jo .error_overflow
     mov ebx, eax
+    jmp .read_number
+
+    .backspace:
+    call mio_writechar
+    mov eax, ' '
+    call mio_writechar
+    mov eax, 8
+    call mio_writechar
+    push edx
+    mov eax, ebx
+    mov ebx, 10
+    cdq
+    idiv ebx
+    mov ebx, eax
+    pop edx
+    cmp ebx, 0
+    jle .reset
     jmp .read_number
 
     .error_set:
@@ -143,6 +161,47 @@ WriteInt:
 
     ret
 
+ReadBin:
+
+    push ebx
+    push ecx
+    push edx
+
+    .reset:
+    XOR eax, eax
+    
+    .read_number:
+    call mio_readchar
+    cmp eax, 13
+    je .end
+    cmp eax, 8
+    je .backspace
+    call mio_writechar
+    ;cmp eax, '0'
+    ;jl .error_trigger
+    ;cmp eax, '1'
+    ;jg .error_trigger
+    shr eax, 1
+    adc ebx, 0
+    shl ebx, 1
+    jmp .read_number
+
+    .backspace:
+    call mio_writechar
+    mov eax, ' '
+    call mio_writechar
+    mov eax, 8
+    call mio_writechar
+    shr ebx, 1
+    jmp .read_number
+
+    .end:
+    pop edx
+    pop ecx
+    pop ebx
+
+    ret
+
 WriteBin:
 
     push eax
@@ -190,10 +249,12 @@ ret
 
 ReadHex:
 
-    XOR eax, eax
     push ebx
     push ecx
     push edx
+
+    .reset:
+    XOR eax, eax
     XOR ebx, ebx
     XOR ecx, ecx
     XOR edx, edx
@@ -203,6 +264,8 @@ ReadHex:
     call mio_readchar
     cmp eax, 13
     je .h_endh
+    ;cmp eax, 8
+    ;je .backspace
     cmp eax, '0'
     jl .h_error_nan
     cmp eax, '9'
@@ -265,6 +328,23 @@ ReadHex:
     jne .h_process
     push eax
     jmp .h_end
+
+    ;.backspace:
+    ;call mio_writechar
+    ;mov eax, ' '
+    ;call mio_writechar
+    ;mov eax, 8
+    ;call mio_writechar
+    ;push edx
+    ;mov eax, ebx
+    ;mov ebx, 16
+    ;cdq
+    ;idiv ebx
+    ;mov ebx, eax
+    ;pop edx
+    ;cmp ebx, 0
+    ;jle .reset
+    ;jmp .h_read_number
     
     .h_error_nan:
     jmp .read_error
@@ -360,6 +440,18 @@ main:
     mov     al, 10
     call    mio_writechar
     call ReadHex
+    call WriteInt
+    call WriteBin
+    call WriteHex
+    mov     al, 13
+    call    mio_writechar
+    mov     al, 10
+    call    mio_writechar
+    mov     al, 13
+    call    mio_writechar
+    mov     al, 10
+    call    mio_writechar
+    call ReadBin
     call WriteInt
     call WriteBin
     call WriteHex
