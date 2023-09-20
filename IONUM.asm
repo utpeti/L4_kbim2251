@@ -169,6 +169,7 @@ ReadBin:
 
     .reset:
     XOR eax, eax
+    XOR ebx, ebx
     
     .read_number:
     call mio_readchar
@@ -196,6 +197,14 @@ ReadBin:
     jmp .read_number
 
     .end:
+    mov eax, 13
+    call mio_writechar
+    mov eax, 10
+    call mio_writechar
+    XOR eax, eax
+    mov eax, ebx
+    shr eax, 1
+
     pop edx
     pop ecx
     pop ebx
