@@ -170,6 +170,8 @@ ReadBin:
     .reset:
     XOR eax, eax
     XOR ebx, ebx
+    XOR ecx, ecx
+    XOR edx, edx
     
     .read_number:
     call mio_readchar
@@ -178,10 +180,11 @@ ReadBin:
     cmp eax, 8
     je .backspace
     call mio_writechar
-    ;cmp eax, '0'
-    ;jl .error_trigger
-    ;cmp eax, '1'
-    ;jg .error_trigger
+    cmp eax, '0'
+    jl .error_trigger
+    cmp eax, '1'
+    jg .error_trigger
+    inc edx
     shr eax, 1
     adc ebx, 0
     shl ebx, 1
@@ -193,10 +196,28 @@ ReadBin:
     call mio_writechar
     mov eax, 8
     call mio_writechar
+    dec edx
     shr ebx, 1
     jmp .read_number
 
+    .error_bin:
+    mov eax, str_error_nan
+    call mio_writestr
+    mov eax, 13
+    call mio_writechar
+    mov eax, 10
+    call mio_writechar
+    jmp .reset
+
+    .error_trigger:
+    mov ecx, 1
+    jmp .read_number
+
     .end:
+    cmp ecx, 1
+    je .error_bin
+    cmp edx, 32
+    jg .error_bin
     mov eax, 13
     call mio_writechar
     mov eax, 10
@@ -437,9 +458,10 @@ WriteHex:
 main:
 
     call ReadInt
+    ;push eax
     call WriteInt
-    call WriteBin
     call WriteHex
+    call WriteBin
     mov     al, 13
     call    mio_writechar
     mov     al, 10
@@ -449,9 +471,10 @@ main:
     mov     al, 10
     call    mio_writechar
     call ReadHex
+    ;push eax
     call WriteInt
-    call WriteBin
     call WriteHex
+    call WriteBin
     mov     al, 13
     call    mio_writechar
     mov     al, 10
@@ -461,9 +484,19 @@ main:
     mov     al, 10
     call    mio_writechar
     call ReadBin
+    ;push eax
     call WriteInt
-    call WriteBin
     call WriteHex
+    call WriteBin
+
+    ;pop eax
+    ;pop ebx
+    ;pop ecx
+    ;add eax, ebx
+    ;add eax, ecx
+    ;call WriteInt
+    ;call WriteHex
+    ;call WriteBin
 
     ret
 
