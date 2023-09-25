@@ -187,7 +187,10 @@ ReadBin:
     inc edx
     shr eax, 1
     adc ebx, 0
+    cmp edx, 32
+    je .skipleftshift
     shl ebx, 1
+    .skipleftshift:
     jmp .read_number
 
     .backspace:
@@ -224,7 +227,10 @@ ReadBin:
     call mio_writechar
     XOR eax, eax
     mov eax, ebx
+    cmp edx, 32
+    je .skiprightshift
     shr eax, 1
+    .skiprightshift:
 
     pop edx
     pop ecx
