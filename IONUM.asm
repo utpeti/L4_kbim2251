@@ -524,3 +524,6 @@ section .data
     str_error_nan db ' Hiba', 0
 
 section .bss
+
+    str_32 resb 32
+    str_64 resb 64
