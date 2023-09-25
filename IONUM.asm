@@ -110,9 +110,11 @@ ReadInt:
 WriteInt:
     push eax
     cmp eax, 0
-    jge .positive
+    jg .positive
     cmp eax, 0
     jl .negative
+    cmp eax, 0
+    je .zero
 
     .negative:
     push eax
@@ -157,6 +159,17 @@ WriteInt:
     pop edx
     pop ecx
     pop ebx
+    jmp .nz
+
+    .zero:
+    mov eax, '0'
+    call mio_writechar
+    mov eax, 13
+    call mio_writechar
+    mov eax, 10
+    call mio_writechar
+    
+    .nz:
     pop eax ;pop the previous values of the registers
 
     ret
@@ -464,7 +477,7 @@ WriteHex:
 main:
 
     call ReadInt
-    ;push eax
+    push eax
     call WriteInt
     call WriteHex
     call WriteBin
@@ -477,7 +490,7 @@ main:
     mov     al, 10
     call    mio_writechar
     call ReadHex
-    ;push eax
+    push eax
     call WriteInt
     call WriteHex
     call WriteBin
@@ -490,19 +503,19 @@ main:
     mov     al, 10
     call    mio_writechar
     call ReadBin
-    ;push eax
+    push eax
     call WriteInt
     call WriteHex
     call WriteBin
 
-    ;pop eax
-    ;pop ebx
-    ;pop ecx
-    ;add eax, ebx
-    ;add eax, ecx
-    ;call WriteInt
-    ;call WriteHex
-    ;call WriteBin
+    pop eax
+    pop ebx
+    pop ecx
+    add eax, ebx
+    add eax, ecx
+    call WriteInt
+    call WriteHex
+    call WriteBin
 
     ret
 
